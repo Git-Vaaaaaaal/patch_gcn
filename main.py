@@ -99,10 +99,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 label_df = pd.read_csv(label_csv_name)
 
 def cleaning_csv(df, element_time): #element_time = 'PFS_time' or 'OS_time'
-    df = df.copy()
+    df = df.dropna(how='all').copy()
     df['case_id'] = df['patient_id']
     mask = df[element_time] > 5.0
-    df.loc[mask, "status"] = 0
+    df.loc[mask, "status"] = 1  # pas d'événement avant la coupure -> censuré à 5 ans
     df.loc[mask, element_time] = 5.0
     df = df.rename(columns={"status": "censorship", "patient_id": "slide_id"})
     df = df[['case_id', 'slide_id', 'censorship', element_time]]
