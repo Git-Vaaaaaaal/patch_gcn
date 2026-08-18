@@ -81,13 +81,12 @@ def csv_to_graph(csv_dir, output_dir, k_neighbors=6, overwrite=False):
     print("Done.")
 
 list_encoder = ["openmidnight", "musk", "virchow2", "gpfm", "hibou_l"]
-marker_list = ["BCL2", "BCL6", "CD10", "HE", "MUM1", "MYC"]
+#marker_list = ["BCL2", "BCL6", "CD10", "HE", "MUM1", "MYC"]
 
 for encoder in list_encoder:
-    for marker in marker_list:
-        csv_dir = os.path.join(BASE_DIR, "data_224_reborn", encoder, marker, ENCODER_CFG[encoder]["tiles_subdir"])
-        output_dir = os.path.join(BASE_DIR, "data_224_reborn", encoder, marker, "graphs")
-        k_neighbors = 6      # nombre de voisins spatiaux par patch
-        overwrite   = False  # True pour re-générer les fichiers existants
+    csv_dir = os.path.join(BASE_DIR, "data_224_reborn", encoder, ENCODER_CFG[encoder]["tiles_subdir"])
+    output_dir = os.path.join(BASE_DIR, "data_224_reborn", encoder, "graphs")
+    k_neighbors = 6      # nombre de voisins spatiaux par patch
+    overwrite   = False  # True pour re-générer les fichiers existants
 
-        csv_to_graph(csv_dir, output_dir, k_neighbors, overwrite)
+    csv_to_graph(csv_dir, output_dir, k_neighbors, overwrite)
