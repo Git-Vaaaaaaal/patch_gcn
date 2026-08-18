@@ -81,7 +81,6 @@ def csv_to_graph(csv_dir, output_dir, k_neighbors=6, overwrite=False):
     print("Done.")
 
 list_encoder = ["openmidnight", "musk", "virchow2", "gpfm", "hibou_l"]
-#marker_list = ["BCL2", "BCL6", "CD10", "HE", "MUM1", "MYC"]
 
 for encoder in list_encoder:
     csv_dir = os.path.join(BASE_DIR, "data_224_reborn", encoder, ENCODER_CFG[encoder]["tiles_subdir"])
