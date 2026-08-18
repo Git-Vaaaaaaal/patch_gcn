@@ -1,0 +1,197 @@
+========================================================
+DESCRIPTION DES VARIABLES DE CONFIGURATION — main.py
+========================================================
+
+────────────────────────────────────────────────────────
+CHEMINS
+────────────────────────────────────────────────────────
+
+data_root_dir
+    Chemin racine vers les données de features pré-extraites.
+    Le script cherchera les graphes dans :
+    <data_root_dir>/<cohorte>_20x_features/graph_euclidean_files/
+    Exemple : '/media/ssd1/pan-cancer/'
+
+results_dir
+    Dossier où seront sauvegardés les résultats (modèles, logs, csv).
+    Le script crée automatiquement des sous-dossiers par run.
+    Exemple : './results'
+
+which_splits
+    Nom du sous-dossier dans ./splits/ qui contient les fichiers
+    de découpage train/val (splits_0.csv, splits_1.csv, ...).
+    Exemple : '5foldcv'
+
+split_dir
+    Nom de la cohorte à utiliser. Doit correspondre à un dossier
+    dans ./splits/<which_splits>/ et à un CSV dans ./dataset_csv/.
+    Exemple : 'tcga_blca_100'  (cancer de la vessie)
+
+
+────────────────────────────────────────────────────────
+REPRODUCTIBILITÉ
+────────────────────────────────────────────────────────
+
+seed
+    Graine aléatoire. Fixe le tirage aléatoire de PyTorch, NumPy
+    et Python pour garantir des résultats identiques à chaque run.
+    Valeur par défaut : 1
+
+
+────────────────────────────────────────────────────────
+CROSS-VALIDATION
+────────────────────────────────────────────────────────
+
+k
+    Nombre total de folds dans la cross-validation.
+    Valeur par défaut : 5
+
+k_start
+    Index du fold à partir duquel démarrer (inclus).
+    -1 = démarrer au fold 0.
+    Utile pour reprendre un entraînement interrompu.
+
+k_end
+    Index du fold auquel s'arrêter (exclus).
+    -1 = aller jusqu'au fold k.
+    Utile pour n'entraîner qu'un sous-ensemble de folds.
+
+
+────────────────────────────────────────────────────────
+LOGS / DEBUG
+────────────────────────────────────────────────────────
+
+log_data
+    True  → enregistre les courbes de loss et C-index dans TensorBoard.
+    False → pas de logs.
+
+overwrite
+    True  → réécrit un run déjà existant (même code d'expérience).
+    False → quitte le script si le run existe déjà (protection).
+
+testing
+    True  → utilise un sous-ensemble aléatoire de 10 % des données.
+             Sert à vérifier rapidement que le code tourne sans erreur.
+    False → entraînement complet.
+
+
+────────────────────────────────────────────────────────
+MODÈLE
+────────────────────────────────────────────────────────
+
+model_type
+    Architecture du modèle de survie.
+    Choix disponibles :
+      'patchgcn' → GCN sur graphe de patches (modèle principal)
+      'dgc'      → GCN simplifié avec GINConv (3 couches fixes)
+      'amil'     → Attention MIL classique (sans graphe)
+      'deepset'  → Somme des features par patch (plus simple)
+      'mifcn'    → MIL avec clustering de patches
+
+mode
+    Format des données en entrée et collate function du DataLoader.
+    Choix disponibles :
+      'graph'   → graphe PyG (.pt dans graph_euclidean_files/) — pour patchgcn/dgc
+      'path'    → tenseur de features (.pt dans pt_files/)     — pour amil/deepset
+      'cluster' → tenseur + ids de cluster                     — pour mifcn
+
+num_gcn_layers
+    Nombre de couches GENConv dans PatchGCN (model_type='patchgcn').
+    Ignoré pour les autres modèles.
+    Valeur par défaut : 4
+
+edge_agg
+    Type d'arêtes utilisées par le GCN pour l'agrégation des voisins.
+      'spatial' → arêtes basées sur la proximité spatiale des patches sur la lame
+      'latent'  → arêtes basées sur la similarité des features embeddings
+    Valeur par défaut : 'spatial'
+
+resample
+    Taux de dropout appliqué sur les features des patches en entrée.
+    0.0 = désactivé. Si > 0, remplace la couche FC initiale par un Dropout.
+    Sert à augmenter les données par suppression aléatoire de patches.
+
+drop_out
+    Active le dropout (p=0.25) dans les couches internes du modèle.
+    True par défaut.
+
+encoding_size
+    Dimension du vecteur d'embedding produit par l'encodeur externe.
+    Doit correspondre au nombre de colonnes feat_* dans vos CSV.
+    Valeur par défaut : 1024
+
+
+────────────────────────────────────────────────────────
+OPTIMISEUR
+────────────────────────────────────────────────────────
+
+opt
+    Algorithme d'optimisation.
+      'adam' → Adam (recommandé)
+      'sgd'  → Stochastic Gradient Descent avec momentum=0.9
+
+batch_size
+    Nombre de slides par batch. Laisser à 1 : chaque graphe a un
+    nombre de noeuds (patches) différent, impossible de batcher sans padding.
+
+gc
+    Gradient Accumulation Steps. Le gradient est accumulé sur <gc>
+    batches avant chaque mise à jour des poids.
+    Effet pratique : simule un batch_size de batch_size * gc = 32.
+    Permet de stabiliser l'entraînement malgré batch_size=1.
+
+max_epochs
+    Nombre maximum d'époques d'entraînement par fold.
+
+lr
+    Taux d'apprentissage (learning rate).
+    Valeur par défaut : 2e-4 (0.0002)
+
+
+────────────────────────────────────────────────────────
+FONCTION DE PERTE SURVIE
+────────────────────────────────────────────────────────
+
+bag_loss
+    Fonction de perte utilisée pour l'analyse de survie.
+      'nll_surv' → Negative Log-Likelihood discrète (recommandée)
+      'ce_surv'  → Cross-Entropy pour survie discrète
+      'cox_surv' → Perte de Cox (survie continue)
+
+alpha_surv
+    Poids supplémentaire donné aux patients NON CENSURÉS dans la loss.
+    0.0 = pas de pondération supplémentaire.
+    Utile si les données sont fortement censurées.
+
+bag_weight
+    Poids du terme de loss au niveau de la slide (bag-level).
+    Utilisé dans certaines variantes multi-tâches. Valeur par défaut : 0.7
+
+label_frac
+    Fraction des labels d'entraînement utilisés (entre 0 et 1).
+    1.0 = utiliser tous les labels disponibles.
+    Réduire pour simuler un scénario de données labellisées limitées.
+
+reg
+    Coefficient de régularisation L2 (weight decay) dans l'optimiseur.
+    Pénalise les poids trop grands pour éviter le surapprentissage.
+
+reg_type
+    Sous-modules sur lesquels appliquer une régularisation L1.
+      'None'      → pas de L1
+      'omic'      → L1 sur les couches omiques
+      'pathomic'  → L1 sur les couches patho+omiques
+
+lambda_reg
+    Force (coefficient) de la régularisation L1.
+    Ignoré si reg_type = 'None'.
+
+weighted_sample
+    True  → WeightedRandomSampler : sur-échantillonne les classes minoritaires
+             pour compenser le déséquilibre entre intervalles de survie.
+    False → RandomSampler classique.
+
+early_stopping
+    True  → arrête l'entraînement si la loss de validation ne s'améliore
+             pas pendant 10 époques consécutives (après un warmup de 5 époques).
+    False → entraîne toujours jusqu'à max_epochs.
