@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # --- Combinaisons à parcourir --------------------------------------------------
 list_encoder = ["openmidnight", "musk", "virchow2", "gpfm", "hibou_l"]
-label_list = ["PFS", "OS"]
+label_list = ["PFS (years)", "Overall survival (years)"]
 
 # --- Chemins (ancrés sur l'emplacement du script, peu importe le cwd du job) --
 data_root      = os.path.join(BASE_DIR, 'data_224_reborn')  # racine des données, structure {data_root}/{encoder}/graphs
