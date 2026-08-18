@@ -67,7 +67,7 @@ class Generic_WSI_Survival_Dataset(Dataset):
         uncensored_df = patients_df[patients_df['censorship'] < 1]
 
         #disc_labels, bins = pd.cut(uncensored_df[label_col], bins=n_bins, right=False, include_lowest=True, labels=np.arange(n_bins), retbins=True)
-        disc_labels, q_bins = pd.qcut(uncensored_df[label_col], q=n_bins, retbins=True, labels=False)
+        disc_labels, q_bins = pd.qcut(uncensored_df[label_col], q=n_bins, retbins=True, labels=False, duplicates='drop')
         q_bins[-1] = slide_data[label_col].max() + eps
         q_bins[0] = slide_data[label_col].min() - eps
         
