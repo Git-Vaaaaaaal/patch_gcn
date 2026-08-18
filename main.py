@@ -29,7 +29,7 @@ label_list = ["PFS", "OS"]
 
 # --- Chemins (ancrés sur l'emplacement du script, peu importe le cwd du job) --
 data_root      = os.path.join(BASE_DIR, 'data_224_reborn')  # racine des données, structure {data_root}/{encoder}/graphs
-label_csv_name = os.path.join(BASE_DIR, 'csv', 'multi_label_patient_id.csv')
+label_csv_name = os.path.join(BASE_DIR, 'csv', 'ia2hl_clinical.csv')
 
 results_dir   = os.path.join(BASE_DIR, 'results')   # dossier de sauvegarde des résultats
 which_splits  = 'holdout'                            # étiquette de nommage (results / exp_code)
